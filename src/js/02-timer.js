@@ -13,33 +13,22 @@ startBtn.disabled = true;
 
 startBtn.addEventListener('click', timeCalculation);
 
+let futureDates;
+let selectedDateinSec;
+let currentDate;
+let dateMinus;
+let interval;
+
 const options = {
   enableTime: true,
   time_24hr: true,
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    const futureDates = selectedDates[0];
-    startBtn.disabled = false;
+    futureDates = selectedDates[0];
+    selectedDateinSec = futureDates.getTime();
+    currentDate = new Date();
     timeBeforeDateAlert(selectedDateinSec, currentDate);
-
-    const selectedDateinSec = futureDates.getTime();
-
-    function timeCalculation() {
-      setInterval(() => {
-        const currentDate = new Date();
-        const currentDateInSec = currentDate.getTime();
-        const dateMinus = Math.abs(currentDateInSec - selectedDateinSec);
-        const convertedObj = convertMs(dateMinus);
-        days.textContent = convertedObj.days;
-        hours.textContent = convertedObj.hours;
-        minutes.textContent = convertedObj.minutes;
-        seconds.textContent = convertedObj.seconds;
-        console.log(dateMinus);
-      }, 1000);
-    }
-    //  timeCalculation(convertedObj);
-    //  console.log(convertedObj);
   },
 };
 const timerBox = document.querySelector('.timer');
@@ -50,15 +39,37 @@ timerBox.style.gap = '20px';
 
 flatpickr(datetimePicker, options);
 
+function timeCalculation() {
+  startBtn.disabled = true;
+
+  interval = setInterval(() => {
+    currentDate = new Date();
+    const currentDateInSec = currentDate.getTime();
+    dateMinus = selectedDateinSec - currentDateInSec;
+    const convertedObj = convertMs(dateMinus);
+    days.textContent = convertedObj.days;
+    hours.textContent = convertedObj.hours;
+    minutes.textContent = convertedObj.minutes;
+    seconds.textContent = convertedObj.seconds;
+    console.log(dateMinus);
+    if (dateMinus <= 1000) {
+      clearInterval(interval);
+      days.textContent = 0;
+      hours.textContent = 0;
+      minutes.textContent = 0;
+      seconds.textContent = 0;
+    }
+  }, 1000);
+}
+
 function timeBeforeDateAlert(selectedDates, currentDate) {
   if (selectedDates < currentDate || selectedDates === currentDate) {
     Notiflix.Notify.failure('Please choose a date in the future');
-    startBtn.disabled = true;
+  } else {
+    startBtn.disabled = false;
   }
 }
-// function timeCalculation(obj) {
 
-// }
 function convertMs(ms) {
   // Number of milliseconds per unit of time
   const second = 1000;
@@ -77,7 +88,3 @@ function convertMs(ms) {
 
   return { days, hours, minutes, seconds };
 }
-
-// function addLeadingZero(value) {
-// 	.padStart(2, "0")
-// }
